@@ -43,6 +43,13 @@ td[contenteditable]{background:#fffef5}td[contenteditable]:focus{outline:2px sol
 .hidden{display:none}
 footer{text-align:center;font-size:12px;color:#777;padding:20px}
 .draft{color:var(--red);font-weight:700}
+
+.axis span{white-space:nowrap}
+@media (max-width:640px){
+ .grow{grid-template-columns:96px 1fr}
+ .grow>:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;padding-right:4px}
+ .axis{margin-left:96px;font-size:10px}
+}
 @media print{header button,.noprint{display:none!important}body{background:#fff}.card{break-inside:avoid;border:0;padding:6px 0}main{padding:0}td[contenteditable]{background:#fff}}
 .ai{border:2px dashed #8e44ad}.aitag{display:inline-block;background:#8e44ad;color:#fff;font-size:12px;padding:2px 8px;border-radius:4px}
 .ann{white-space:pre-wrap;border:1px solid var(--line);background:#fffbe6;padding:10px;border-radius:6px;min-height:60px}
@@ -179,9 +186,9 @@ const TYPES={concert:["Concert / Show","演唱會／表演"],conference:["Corpor
 const VENUES={arena:[["Arena","大型綜藝館"],5000,8],ballroom:[["Ballroom","宴會廳"],1200,3],hall:[["Convention hall","會展廳"],2000,4],plaza:[["Outdoor plaza","戶外廣場"],4000,5],lounge:[["Restaurant / lounge","餐廳／酒廊"],250,1]};
 const BUDGETS={std:["Standard","標準"],prem:["Premium","高級"],flag:["Flagship","旗艦"]};
 const DEMOS=[
- {name:"Harbour Grand Live 2025 – Pop Concert",type:"concert",venue:"arena",cap:5500,pax:5000,date:"2025-08-16",start:"19:00",dur:3,gates:8,budget:"prem",outdoor:"no",minor:"yes",mCN:55,mHK:25,mLocal:15,mIntl:5},
- {name:"Asia Fintech Leaders Summit",type:"conference",venue:"hall",cap:1200,pax:800,date:"2025-11-06",start:"08:30",dur:8,gates:3,budget:"prem",outdoor:"no",minor:"no",mCN:40,mHK:20,mLocal:10,mIntl:30},
- {name:"Lunar New Year Family Carnival",type:"festival",venue:"plaza",cap:4000,pax:3000,date:"2026-02-17",start:"14:00",dur:6,gates:5,budget:"std",outdoor:"yes",minor:"yes",mCN:50,mHK:15,mLocal:30,mIntl:5}];
+ {name:"Harbour Grand Live 2027 – Pop Concert",type:"concert",venue:"arena",cap:5500,pax:5000,date:"2027-08-14",start:"19:00",dur:3,gates:8,budget:"prem",outdoor:"no",minor:"yes",mCN:55,mHK:25,mLocal:15,mIntl:5},
+ {name:"Asia Fintech Leaders Summit",type:"conference",venue:"hall",cap:1200,pax:800,date:"2027-11-04",start:"08:30",dur:8,gates:3,budget:"prem",outdoor:"no",minor:"no",mCN:40,mHK:20,mLocal:10,mIntl:30},
+ {name:"Lunar New Year Family Carnival",type:"festival",venue:"plaza",cap:4000,pax:3000,date:"2027-02-07",start:"14:00",dur:6,gates:5,budget:"std",outdoor:"yes",minor:"yes",mCN:50,mHK:15,mLocal:30,mIntl:5}];
 const RATIO_DEF={rSec:100,rUsher:150,rMed:500,rTicket:250};
 const $=id=>document.getElementById(id);
 let LAST=null;
