@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event Ops Copilot | 活動籌備助手</title>
+<style>
+:root{--navy:#14213d;--gold:#c9a227;--bg:#f5f6fa;--line:#dde1ea;--red:#c0392b;--amber:#d68910;--green:#1e8449}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:#222;line-height:1.5}
+header{background:var(--navy);color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+header h1{margin:0;font-size:20px}header h1 span{color:var(--gold)}
+header small{opacity:.8;display:block;font-size:12px}
+.langbtn{background:var(--gold);border:0;color:var(--navy);font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer}
+main{max-width:1150px;margin:auto;padding:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px}
+h2{margin:0 0 12px;font-size:17px;color:var(--navy);border-left:4px solid var(--gold);padding-left:8px}
+.demos{display:flex;gap:10px;flex-wrap:wrap}
+.demos button{flex:1;min-width:200px;padding:12px;border:1px solid var(--navy);background:#fff;border-radius:8px;cursor:pointer;text-align:left}
+.demos button:hover{background:#eef1f8}.demos b{display:block;color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{font-size:13px;font-weight:600;display:block;margin-bottom:3px}
+input,select{width:100%;padding:8px;border:1px solid #c7ccd8;border-radius:6px;font-size:14px}
+.chk{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}.chk label{font-weight:400;display:flex;gap:5px;align-items:center}.chk input{width:auto}
+.btn{background:var(--navy);color:#fff;border:0;padding:10px 20px;border-radius:6px;font-size:15px;cursor:pointer;margin-top:14px}
+.btn.alt{background:#fff;color:var(--navy);border:1px solid var(--navy)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.banner{background:#fff8e1;border:1px solid #f0d27a;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#eef1f8}
+td[contenteditable]{background:#fffef5}td[contenteditable]:focus{outline:2px solid var(--gold)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:#eef1f8;border-radius:8px;padding:10px;text-align:center}.kpi b{font-size:22px;color:var(--navy);display:block}
+.gantt{font-size:12px}.grow{display:grid;grid-template-columns:260px 1fr;align-items:center;border-bottom:1px dashed var(--line);min-height:26px}
+.track{position:relative;height:18px;background:#f3f4f8}
+.bar{position:absolute;height:18px;border-radius:4px;background:var(--navy)}
+.bar.c1{background:#2e86c1}.bar.c2{background:var(--gold)}.bar.c3{background:var(--green)}.bar.c4{background:var(--red)}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:#666;margin-left:260px}
+.lv{font-weight:700;padding:2px 6px;border-radius:4px;color:#fff;font-size:11px}
+.H{background:var(--red)}.M{background:var(--amber)}.L{background:var(--green)}
+.approve{background:#eaf6ee;border:1px solid #a9dbb8;padding:12px;border-radius:8px}
+.hidden{display:none}
+footer{text-align:center;font-size:12px;color:#777;padding:20px}
+.draft{color:var(--red);font-weight:700}
+@media print{header button,.noprint{display:none!important}body{background:#fff}.card{break-inside:avoid;border:0;padding:6px 0}main{padding:0}td[contenteditable]{background:#fff}}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>Event Ops <span>Copilot</span></h1><small data-i="sub"></small></div>
+ <button class="langbtn" onclick="toggleLang()" data-i="langbtn"></button>
+</header>
+<main>
+<div class="banner noprint" data-i="banner"></div>
+
+<div class="card noprint"><h2 data-i="demoT"></h2>
+ <div class="demos">
+  <button onclick="loadDemo(0)"><b data-i="d0"></b><span data-i="d0s"></span></button>
+  <button onclick="loadDemo(1)"><b data-i="d1"></b><span data-i="d1s"></span></button>
+  <button onclick="loadDemo(2)"><b data-i="d2"></b><span data-i="d2s"></span></button>
+ </div>
+</div>
+
+<div class="card noprint"><h2 data-i="briefT"></h2>
+ <div class="grid">
+  <div><label data-i="fName"></label><input id="name"></div>
+  <div><label data-i="fType"></label><select id="type"></select></div>
+  <div><label data-i="fVenue"></label><select id="venue" onchange="venueDefaults()"></select></div>
+  <div><label data-i="fCap"></label><input id="cap" type="number" min="1"></div>
+  <div><label data-i="fPax"></label><input id="pax" type="number" min="1"></div>
+  <div><label data-i="fDate"></label><input id="date" type="date"></div>
+  <div><label data-i="fStart"></label><input id="start" type="time"></div>
+  <div><label data-i="fDur"></label><input id="dur" type="number" min="1" max="12" step="0.5"></div>
+  <div><label data-i="fGates"></label><input id="gates" type="number" min="1"></div>
+  <div><label data-i="fBudget"></label><select id="budget"></select></div>
+  <div><label data-i="fOutdoor"></label><select id="outdoor"></select></div>
+  <div><label data-i="fMinor"></label><select id="minor"></select></div>
+ </div>
+ <div style="margin-top:12px"><label data-i="fMix"></label>
+  <div class="grid">
+   <div><label data-i="mCN"></label><input id="mCN" type="number" min="0" max="100"></div>
+   <div><label data-i="mHK"></label><input id="mHK" type="number" min="0" max="100"></div>
+   <div><label data-i="mLocal"></label><input id="mLocal" type="number" min="0" max="100"></div>
+   <div><label data-i="mIntl"></label><input id="mIntl" type="number" min="0" max="100"></div>
+  </div></div>
+ <details style="margin-top:12px"><summary data-i="ratioT" style="cursor:pointer;font-weight:600"></summary>
+  <div class="grid" style="margin-top:8px">
+   <div><label data-i="rSec"></label><input id="rSec" type="number" min="1"></div>
+   <div><label data-i="rUsher"></label><input id="rUsher" type="number" min="1"></div>
+   <div><label data-i="rMed"></label><input id="rMed" type="number" min="1"></div>
+   <div><label data-i="rTicket"></label><input id="rTicket" type="number" min="1"></div>
+  </div><p style="font-size:12px;color:#666" data-i="ratioNote"></p></details>
+ <button class="btn" onclick="generate()" data-i="gen"></button>
+ <div id="err" style="color:var(--red);margin-top:8px"></div>
+</div>
+
+<div id="out" class="hidden">
+ <div class="card"><h2 data-i="sumT"></h2><p class="draft" data-i="draftTag"></p><div id="summary"></div></div>
+ <div class="card"><h2 data-i="ganttT"></h2><div id="gantt" class="gantt"></div></div>
+ <div class="card"><h2 data-i="cdT"></h2><p style="font-size:12px" data-i="editNote"></p><div id="countdown"></div></div>
+ <div class="card"><h2 data-i="rosT"></h2><div id="ros"></div></div>
+ <div class="card"><h2 data-i="staffT"></h2><div id="staff"></div></div>
+ <div class="card"><h2 data-i="riskT"></h2><div id="risk"></div></div>
+ <div class="card noprint"><h2 data-i="appT"></h2>
+  <div class="approve">
+   <div class="grid"><div><label data-i="appBy"></label><input id="appBy"></div><div><label data-i="appRole"></label><input id="appRole"></div></div>
+   <div class="chk" style="margin-top:10px"><label><input type="checkbox" id="appChk" onchange="checkApp()"> <span data-i="appChk"></span></label></div>
+  </div>
+  <button class="btn" id="bPdf" disabled onclick="exportPdf()" data-i="pdf"></button>
+  <button class="btn alt" id="bXls" disabled onclick="exportExcel()" data-i="xls"></button>
+ </div>
+ <div class="card hidden" id="appPrint"></div>
+</div>
+</main>
+<footer data-i="foot"></footer>
+
+<script>
+let LANG='en';
+const T={
+sub:["Integrated-Resort Event Planning Assistant · Rules-based, human-approved","綜合度假村活動籌備助手 · 規則計算 · 人手審批"],
+langbtn:["中文","English"],
+banner:["Demo resort: <b>Harbour Grand Resort</b> (fictional). Phase 1: all numbers and schedules are generated by transparent planning rules — no AI guesswork. Every output is a DRAFT for human review. Regulatory items are reminders only; verify against the latest official requirements.","示範度假村：<b>Harbour Grand Resort</b>（虛構）。第 1 階段：所有數字和時間表都由透明規則計算，不依賴 AI 猜測。全部輸出均為草稿，須人手審核。法規相關項目只作提醒，請按最新官方要求核實。"],
+demoT:["1 · Load a demo case","1 · 載入示範案例"],
+d0:["🎤 5,000-pax Concert","🎤 5,000 人演唱會"],d0s:["Arena · evening · mixed audience","綜藝館 · 晚間 · 觀眾多元"],
+d1:["💼 800-pax Corporate Conference","💼 800 人企業會議"],d1s:["Convention hall · full day · MICE","會展廳 · 全日 · 商務會展"],
+d2:["🏮 Lunar New Year Carnival","🏮 新春戶外嘉年華"],d2s:["Outdoor plaza · families · typhoon-free season","戶外廣場 · 家庭客 · 冬季"],
+briefT:["2 · Event brief","2 · 活動簡介"],
+fName:["Event name","活動名稱"],fType:["Event type","活動類型"],fVenue:["Venue type","場地類型"],fCap:["Venue capacity","場地容量"],
+fPax:["Expected attendance","預計人數"],fDate:["Event date","活動日期"],fStart:["Doors / start time","開門／開始時間"],fDur:["Programme length (hours)","節目時長（小時）"],
+fGates:["Entry gates","入口數目"],fBudget:["Budget tier","預算級別"],fOutdoor:["Outdoor component","戶外部分"],fMinor:["Under-21 guests possible","可能有未滿 21 歲賓客"],
+fMix:["Guest mix (%)","客群比例（%）"],mCN:["Mainland China","內地"],mHK:["Hong Kong","香港"],mLocal:["Macau local","澳門本地"],mIntl:["International","國際"],
+ratioT:["⚙ Staffing ratios (editable to match your company standard)","⚙ 人手比例（可按公司標準修改）"],
+rSec:["Guests per security officer","每名保安對應賓客數"],rUsher:["Guests per usher","每名接待對應賓客數"],rMed:["Guests per first-aider","每名急救員對應賓客數"],rTicket:["Guests per ticketing/registration staff","每名票務／登記人員對應賓客數"],
+ratioNote:["Defaults are planning assumptions for demonstration, not regulatory figures.","預設值是示範用的規劃假設，並非法定數字。"],
+gen:["Generate execution pack ▶","生成活動執行包 ▶"],
+sumT:["Execution pack summary","執行包摘要"],draftTag:["DRAFT — pending human approval","草稿 — 待人手審批"],
+ganttT:["Planning timeline (Gantt)","籌備時間軸（甘特圖）"],cdT:["Countdown task list (T-60 → T+7)","倒數工作清單（T-60 → T+7）"],
+editNote:["Yellow cells are editable — click to adjust before approval.","黃色格可直接修改，審批前可按需要調整。"],
+rosT:["Event-day run of show","活動當日流程表"],staffT:["Staffing plan","人手配置"],riskT:["Risk register (Macau-specific)","風險清單（澳門特色）"],
+appT:["3 · Approval & export","3 · 審批及匯出"],appBy:["Approved by","審批人"],appRole:["Role","職位"],
+appChk:["I have reviewed this draft and approve it for export.","本人已審閱此草稿並批准匯出。"],
+pdf:["Export PDF","匯出 PDF"],xls:["Export Excel","匯出 Excel"],
+foot:["Event Ops Copilot · Portfolio project · Fictional demo data only · No personal data collected","Event Ops Copilot · 作品集項目 · 只使用虛構示範資料 · 不收集任何個人資料"],
+errFill:["Please complete all fields (attendance, capacity, date, time, duration, gates).","請填妥所有欄位（人數、容量、日期、時間、時長、入口）。"],
+errCap:["⚠ Expected attendance exceeds venue capacity — reduce attendance or change venue.","⚠ 預計人數超過場地容量，請減少人數或更換場地。"],
+errMix:["Guest mix must add up to 100%.","客群比例總和必須為 100%。"],
+yes:["Yes","是"],no:["No","否"],
+cols:{phase:["Phase","階段"],day:["Day","日子"],date:["Date","日期"],task:["Task","工作"],owner:["Owner","負責部門"],status:["Status","狀態"],
+time:["Time","時間"],item:["Item","項目"],role:["Role","崗位"],count:["Headcount","人數"],basis:["Basis","計算依據"],
+risk:["Risk","風險"],lvl:["Level","等級"],mit:["Mitigation / contingency","預防及應變"],
+},
+todo:["To do","待辦"]
+};
+const t=k=>Array.isArray(T[k])?T[k][LANG=='en'?0:1]:k;
+const c=k=>T.cols[k][LANG=='en'?0:1];
+const L=(e,z)=>LANG=='en'?e:z;
+
+const TYPES={concert:["Concert / Show","演唱會／表演"],conference:["Corporate conference (MICE)","企業會議（會展）"],festival:["Festive carnival","節慶嘉年華"],sports:["Sports event","體育賽事"],gala:["Gala dinner / F&B promotion","晚宴／餐飲推廣"]};
+const VENUES={arena:[["Arena","大型綜藝館"],5000,8],ballroom:[["Ballroom","宴會廳"],1200,3],hall:[["Convention hall","會展廳"],2000,4],plaza:[["Outdoor plaza","戶外廣場"],4000,5],lounge:[["Restaurant / lounge","餐廳／酒廊"],250,1]};
+const BUDGETS={std:["Standard","標準"],prem:["Premium","高級"],flag:["Flagship","旗艦"]};
+const DEMOS=[
+ {name:"Harbour Grand Live 2025 – Pop Concert",type:"concert",venue:"arena",cap:5500,pax:5000,date:"2025-08-16",start:"19:00",dur:3,gates:8,budget:"prem",outdoor:"no",minor:"yes",mCN:55,mHK:25,mLocal:15,mIntl:5},
+ {name:"Asia Fintech Leaders Summit",type:"conference",venue:"hall",cap:1200,pax:800,date:"2025-11-06",start:"08:30",dur:8,gates:3,budget:"prem",outdoor:"no",minor:"no",mCN:40,mHK:20,mLocal:10,mIntl:30},
+ {name:"Lunar New Year Family Carnival",type:"festival",venue:"plaza",cap:4000,pax:3000,date:"2026-02-17",start:"14:00",dur:6,gates:5,budget:"std",outdoor:"yes",minor:"yes",mCN:50,mHK:15,mLocal:30,mIntl:5}];
+const RATIO_DEF={rSec:100,rUsher:150,rMed:500,rTicket:250};
+const $=id=>document.getElementById(id);
+let LAST=null;
+
+function fillSelects(){
+ const keep={type:$('type').value,venue:$('venue').value,budget:$('budget').value,outdoor:$('outdoor').value,minor:$('minor').value};
+ $('type').innerHTML=Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${L(...v)}</option>`).join('');
+ $('venue').innerHTML=Object.entries(VENUES).map(([k,v])=>`<option value="${k}">${L(...v[0])}</option>`).join('');
+ $('budget').innerHTML=Object.entries(BUDGETS).map(([k,v])=>`<option value="${k}">${L(...v)}</option>`).join('');
+ ['outdoor','minor'].forEach(s=>$(s).innerHTML=`<option value="no">${t('no')}</option><option value="yes">${t('yes')}</option>`);
+ for(const k in keep) if(keep[k]) $(k).value=keep[k];
+}
+function applyLang(){
+ document.documentElement.lang=LANG=='en'?'en':'zh-Hant';
+ document.querySelectorAll('[data-i]').forEach(e=>e.innerHTML=t(e.dataset.i));
+ fillSelects(); if(LAST) render();
+}
+function toggleLang(){LANG=LANG=='en'?'zh':'en';applyLang();}
+function venueDefaults(){const v=VENUES[$('venue').value];$('cap').value=v[1];$('gates').value=v[2];}
+function loadDemo(i){const d=DEMOS[i];for(const k in d)$(k).value=d[k];for(const k in RATIO_DEF)$(k).value=RATIO_DEF[k];generate();}
+
+function read(){
+ const f={};['name','type','venue','date','start','budget','outdoor','minor'].forEach(k=>f[k]=$(k).value);
+ ['cap','pax','dur','gates','mCN','mHK','mLocal','mIntl','rSec','rUsher','rMed','rTicket'].forEach(k=>f[k]=parseFloat($(k).value));
+ return f;
+}
+function addDays(ds,n){const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function addMin(hm,m){let [h,mi]=hm.split(':').map(Number);let x=h*60+mi+m;x=((x%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');}
+
+/* ---------- RULE ENGINE ---------- */
+function countdown(f){
+ const big=f.pax>=2000, R=[];
+ const add=(d,e,z,o,ph)=>R.push({d,en:e,zh:z,o,ph});
+ add(-60,"Confirm event concept, budget and KPIs","確定活動概念、預算及關鍵指標","Event Planning",0);
+ add(-60,"Hold venue & back-of-house areas; check clash with other resort events","預留場地及後勤區域；檢查與其他度假村活動是否撞期","Venue Mgmt",0);
+ add(-55,"Submit licence / permit applications to relevant government authorities (verify current lead times)","向相關政府部門遞交准照／許可申請（請核實最新所需時間）","Event Planning / Legal",0);
+ if(f.type=='concert'||f.type=='festival'||f.type=='sports') add(-50,"Contract artists / performers; confirm rider & visa/work-permit needs","簽約藝人／表演者；確認技術要求及簽證／工作許可","Entertainment",0);
+ if(f.type=='conference') add(-50,"Confirm speakers, agenda and registration platform","確認講者、議程及登記平台","Event Planning",0);
+ add(-45,"Brief Hotel Ops on room-block & check-in/out peaks","向酒店營運部簡報房間預留及入住／退房高峰","Hotel Ops",0);
+ add(-40,"Appoint suppliers: AV, staging, security contractor, F&B","委任供應商：影音、舞台、保安承辦商、餐飲","Procurement",0);
+ add(-35,"Draft crowd-flow plan and site map"+(f.minor=='yes'?" (routes must avoid gaming floor)":""),"草擬人流動線及場地圖"+(f.minor=='yes'?"（路線須避開博彩區）":""),"Security",1);
+ add(-30,"Launch marketing & ticketing / registration (EN/繁/简)","展開宣傳及售票／登記（英／繁／簡）","Marketing",1);
+ add(-30,"Book cross-border shuttle coaches (Border Gate, HZMB, ferry terminals)","預訂跨境接駁巴士（關閘、港珠澳大橋、碼頭）","Transport",1);
+ add(-25,"Fire safety & venue layout review","消防安全及場地佈局檢查","Engineering / Safety",1);
+ if(f.outdoor=='yes') add(-21,"Confirm wet-weather / typhoon backup venue and decision timeline","確認雨天／颱風後備場地及決策時間表","Event Planning",1);
+ add(-21,"Finalise staffing plan; book multilingual staff","落實人手配置；預約多語言人員","HR / Event Ops",1);
+ add(-14,"Prepare refund & postponement policy (typhoon / black rainstorm)","制定退款及延期政策（颱風／黑雨）","Event Planning / Finance",1);
+ add(-14,"Media & VIP guest list lock","鎖定傳媒及貴賓名單","PR",1);
+ add(-10,"Coordinate with police / traffic on drop-off and dispersal","與警方／交通部門協調上落客及散場安排","Security / Transport",2);
+ add(-7,"Final run-of-show; issue staff briefing pack","最終流程表；發出員工簡報資料","Event Ops",2);
+ add(-5,"Monitor weather outlook daily (SMG)","每日留意天氣展望（地球物理氣象局）","Event Ops",2);
+ if(big) add(-3,"Emergency drill with security & medical teams","與保安及醫護團隊進行緊急演練","Security",2);
+ add(-2,"Load-in, staging, AV build","進場、搭台、影音安裝","Production",2);
+ add(-1,"Technical rehearsal & go/no-go meeting","技術綵排及開展與否會議","All depts",2);
+ add(0,"EVENT DAY — run of show","活動當日 — 按流程表執行","All depts",3);
+ add(1,"Load-out & venue handover","撤場及場地交還","Production",4);
+ add(3,"Collect guest feedback survey","收集賓客意見調查","Marketing",4);
+ add(7,"Post-event debrief & report (budget vs actual, incidents, lessons)","活動後檢討及報告（預算對比、事故、經驗）","Event Planning",4);
+ return R.sort((a,b)=>a.d-b.d);
+}
+function runOfShow(f){
+ const doorsBefore={concert:90,conference:60,festival:0,sports:90,gala:45}[f.type];
+ const s=f.start, R=[], add=(m,e,z)=>R.push({tm:addMin(s,m),en:e,zh:z});
+ add(-doorsBefore-180,"Crew call, final safety walk","工作人員報到，最後安全巡查");
+ add(-doorsBefore-90,"All-staff briefing (radio channels, emergency roles)","全體員工簡報（對講機頻道、緊急分工）");
+ add(-doorsBefore-30,"Shuttle coaches begin arrivals; gates staffed","接駁巴士開始抵達；各入口人手到位");
+ if(doorsBefore>0) add(-doorsBefore,f.type=='conference'?"Registration opens":"Doors open","開放"+(f.type=='conference'?"登記":"入場"));
+ add(0,f.type=='conference'?"Opening keynote":f.type=='festival'?"Carnival opens — lion dance opening":"Show / programme starts",f.type=='conference'?"開幕主題演講":f.type=='festival'?"嘉年華開幕 — 醒獅表演":"節目開始");
+ const D=f.dur*60;
+ if(f.type=='conference'){add(D*0.3,"Networking break","茶歇交流");add(D*0.5,"Lunch","午餐");add(D*0.75,"Panel sessions","專題討論");}
+ else if(f.type=='festival'){add(D*0.33,"Stage performance block 2; game booths peak","第二節舞台表演；攤位人流高峰");add(D*0.66,"Lucky draw / fortune ceremony","抽獎／祈福儀式");}
+ else add(D*0.5,"Intermission / mid-point check-in with Security","中場／與保安中段檢查");
+ add(D,"Programme ends — staged dispersal by zone","節目結束 — 按區域分批散場");
+ add(D+20,"Shuttles depart in waves; traffic marshals active","接駁巴士分批開出；交通指揮到位");
+ add(D+60,"Venue clear; lost & found handover","場地清空；失物交接");
+ add(D+90,"Incident log closed; on-site debrief","結束事故記錄；現場簡短檢討");
+ return R;
+}
+function staffing(f){
+ const prem={std:1,prem:1.15,flag:1.3}[f.budget], out=f.outdoor=='yes'?1.2:1;
+ const ce=x=>Math.max(1,Math.ceil(x));
+ const nonLocal=(f.mCN+f.mIntl)/100;
+ const R=[
+  ["Security officers","保安",ce(f.pax/f.rSec*out),L(`1 per ${f.rSec} guests`,`每 ${f.rSec} 人 1 名`)+(out>1?L(" ×1.2 outdoor"," ×1.2 戶外"):"")],
+  ["Gate / bag-check staff","入口／行李檢查",ce(f.gates*2),L("2 per gate","每入口 2 名")],
+  ["Ushers / guest service","接待／賓客服務",ce(f.pax/f.rUsher*prem),L(`1 per ${f.rUsher} guests × budget tier`,`每 ${f.rUsher} 人 1 名 × 預算級別`)],
+  [f.type=='conference'?"Registration staff":"Ticketing staff",f.type=='conference'?"登記人員":"票務人員",ce(f.pax/f.rTicket),L(`1 per ${f.rTicket} guests`,`每 ${f.rTicket} 人 1 名`)],
+  ["First-aiders / medical","急救／醫護",ce(f.pax/f.rMed),L(`1 per ${f.rMed} guests`,`每 ${f.rMed} 人 1 名`)],
+  ["Mandarin-speaking staff (min.)","普通話人員（最少）",ce(f.pax/f.rUsher*f.mCN/100),L(`${f.mCN}% Mainland guests`,`內地賓客 ${f.mCN}%`)],
+  ["English-speaking staff (min.)","英語人員（最少）",ce(f.pax/f.rUsher*Math.max(f.mIntl/100,0.05)),L(`${f.mIntl}% international (min 5%)`,`國際賓客 ${f.mIntl}%（最少按 5%）`)],
+  ["Transport marshals","交通指揮",ce(f.pax*nonLocal/400+2),L("non-local guests ÷ 400 + 2","非本地賓客 ÷ 400 + 2")],
+ ];
+ if(f.minor=='yes') R.push(["Age-check / gaming-floor boundary staff","年齡核查／博彩區邊界人員",ce(f.gates+2),L("gates + 2 (keep under-21 guests off gaming floor)","入口數 + 2（防止未滿 21 歲人士進入博彩區）")]);
+ return R;
+}
+function risks(f){
+ const m=new Date(f.date+'T00:00:00').getMonth()+1, typhoonSeason=m>=5&&m<=10, R=[];
+ const add=(lv,e,z,me,mz,o)=>R.push({lv,en:e,zh:z,me,mz,o});
+ add(typhoonSeason?(f.outdoor=='yes'?'H':'M'):'L',"Typhoon signal No. 8 or above / black rainstorm","8 號或以上風球／黑色暴雨",
+  "Pre-agreed go/no-go decision points (T-24h, T-6h); refund/postpone policy published; guest SMS & social templates ready"+(f.outdoor=='yes'?"; indoor backup venue":""),
+  "預先訂明決策時間點（T-24 小時、T-6 小時）；公佈退款／延期政策；預備短訊及社交媒體通知範本"+(f.outdoor=='yes'?"；室內後備場地":""),"Event Ops");
+ const load=f.pax/f.cap;
+ add(load>0.9?'H':load>0.7?'M':'L',`Crowd density (attendance at ${Math.round(load*100)}% of capacity)`,`人流密度（人數為容量的 ${Math.round(load*100)}%）`,
+  `Staged entry over ${f.gates} gates (~${Math.ceil(f.pax/f.gates)} per gate); zone-based dispersal; CCTV monitoring`,`${f.gates} 個入口分批入場（每入口約 ${Math.ceil(f.pax/f.gates)} 人）；按區域散場；閉路電視監察`,"Security");
+ if(f.minor=='yes') add('H',"Under-21 guests routed through gaming areas","未滿 21 歲賓客路經博彩區",
+  "Dedicated entry/exit routes avoiding casino floor; signage EN/繁/简; boundary staff at junctions","設專用出入口路線避開賭場；英／繁／簡指示牌；分岔位設邊界人員","Security");
+ const nl=f.mCN+f.mHK+f.mIntl;
+ add(nl>60&&f.pax>1000?'H':'M',"Cross-border transport congestion after event","散場後跨境交通擠塞",
+  "Wave-based shuttle departures to Border Gate, HZMB & ferry terminals; announce last-ferry/border times","分批開出往關閘、港珠澳大橋及碼頭的接駁巴士；公佈尾班船及口岸時間","Transport");
+ add(f.pax>=2000?'M':'L',"Hotel check-in / check-out peak clash","酒店入住／退房高峰撞期","Share event schedule with Hotel Ops; extra front-desk staff; luggage storage","與酒店營運部共享時間表；增派前台人手；行李寄存","Hotel Ops");
+ add('M',"Permit / licence delays","准照／許可延誤","Submit at T-55; weekly status tracking; verify current official requirements","T-55 遞交；每週追蹤進度；核實最新官方要求","Legal");
+ add('M',"Medical emergency","醫療緊急事故","First-aid posts mapped; ambulance access lane kept clear; AED locations briefed","標示急救站位置；保持救護車通道暢通；簡報 AED 位置","Medical");
+ if(f.type=='concert') add('M',"Ticket scalping / counterfeit tickets","炒票／假票","Real-name or QR ticketing; scan validation at gates","實名或二維碼門票；入口掃描驗證","Ticketing");
+ if(f.type=='conference') add('M',"Speaker no-show / AV failure","講者缺席／影音故障","Backup speaker list; redundant AV & presenter laptop","後備講者名單；備用影音及電腦","AV / Event Ops");
+ if(f.type=='festival') add('M',"Lost children in family crowd","家庭人潮中兒童走失","Wristbands with parent phone number; designated meeting point","手帶寫上家長電話；設指定集合點","Guest Service");
+ if(f.outdoor=='yes') add(typhoonSeason?'M':'L',"Heat / rain exposure","炎熱／下雨","Shade, water stations, ponchos; weather check every 2h","遮陰、飲水站、雨衣；每 2 小時檢查天氣","Event Ops");
+ add('L',"Language barrier in emergencies","緊急情況下語言障礙","PA scripts pre-recorded in Cantonese, Mandarin, English (Portuguese optional)","預錄粵語、普通話、英語（葡語可選）廣播","Event Ops");
+ const o={H:0,M:1,L:2};return R.sort((a,b)=>o[a.lv]-o[b.lv]);
+}
+
+/* ---------- UI ---------- */
+function generate(){
+ const f=read(); $('err').textContent='';
+ if(!f.date||!f.start||[f.cap,f.pax,f.dur,f.gates].some(x=>!(x>0))){$('err').textContent=t('errFill');return;}
+ if(f.pax>f.cap){$('err').textContent=t('errCap');return;}
+ if(Math.round(f.mCN+f.mHK+f.mLocal+f.mIntl)!=100){$('err').textContent=t('errMix');return;}
+ for(const k in RATIO_DEF) if(!(f[k]>0)) f[k]=RATIO_DEF[k];
+ LAST={f,cd:countdown(f),ros:runOfShow(f),st:staffing(f),rk:risks(f)};
+ $('appChk').checked=false;checkApp();render();
+ $('out').classList.remove('hidden');$('out').scrollIntoView({behavior:'smooth'});
+}
+const esc=s=>String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+function tbl(head,rows,editCols=[]){
+ return `<table><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map((x,i)=>`<td${editCols.includes(i)?' contenteditable':''}>${esc(x)}</td>`).join('')}</tr>`).join('')}</table>`;
+}
+const PH=[["Plan","策劃"],["Prepare","籌備"],["Final","最後階段"],["Event","活動"],["Post","活動後"]];
+function render(){
+ const {f,cd,ros,st,rk}=LAST, tot=st.reduce((a,r)=>a+r[2],0), hi=rk.filter(r=>r.lv=='H').length;
+ $('summary').innerHTML=`<div class="kpis">
+ <div class="kpi"><b>${f.pax.toLocaleString()}</b>${L('Guests','賓客')}</div>
+ <div class="kpi"><b>${Math.round(f.pax/f.cap*100)}%</b>${L('Capacity load','場地使用率')}</div>
+ <div class="kpi"><b>${tot}</b>${L('Total staff','總人手')}</div>
+ <div class="kpi"><b>${cd.length}</b>${L('Countdown tasks','倒數工作')}</div>
+ <div class="kpi"><b style="color:${hi?'var(--red)':'var(--green)'}">${hi}</b>${L('High risks','高風險項目')}</div></div>
+ <p><b>${esc(f.name)}</b> · ${L(...TYPES[f.type])} · ${L(...VENUES[f.venue][0])} · ${f.date} ${f.start} · ${f.dur}h · ${L('Budget','預算')}: ${L(...BUDGETS[f.budget])}</p>`;
+ // gantt
+ const min=-60,max=7,span=max-min,pos=d=>((d-min)/span*100);
+ const groups=[[-60,-36],[-35,-11],[-10,-1],[0,0],[1,7]];
+ let g=`<div class="axis"><span>T-60</span><span>T-45</span><span>T-30</span><span>T-15</span><span>T0</span><span>T+7</span></div>`;
+ groups.forEach((gr,i)=>{g+=`<div class="grow"><b>${L(...PH[i])}</b><div class="track"><div class="bar c${i}" style="left:${pos(gr[0])}%;width:${Math.max(1.2,pos(gr[1]+1)-pos(gr[0]))}%"></div></div></div>`;});
+ cd.forEach(r=>{g+=`<div class="grow"><span>T${r.d>=0?'+':''}${r.d} · ${esc(L(r.en,r.zh)).slice(0,LANG=='en'?42:22)}…</span><div class="track"><div class="bar c${r.ph}" style="left:${pos(r.d)}%;width:1.4%"></div></div></div>`;});
+ $('gantt').innerHTML=g;
+ $('countdown').innerHTML=tbl([c('day'),c('date'),c('task'),c('owner'),c('status')],cd.map(r=>[`T${r.d>=0?'+':''}${r.d}`,addDays(f.date,r.d),L(r.en,r.zh),r.o,t('todo')]),[2,3,4]);
+ $('ros').innerHTML=tbl([c('time'),c('item')],ros.map(r=>[r.tm,L(r.en,r.zh)]),[0,1]);
+ $('staff').innerHTML=tbl([c('role'),c('count'),c('basis')],st.map(r=>[L(r[0],r[1]),r[2],r[3]]),[1])+`<p><b>${L('Total','合計')}: ${tot}</b> <span style="font-size:12px">${L('(language staff may overlap with ushers)','（語言人員可與接待人員重疊）')}</span></p>`;
+ $('risk').innerHTML=`<table><tr><th>${c('lvl')}</th><th>${c('risk')}</th><th>${c('mit')}</th><th>${c('owner')}</th></tr>${rk.map(r=>`<tr><td><span class="lv ${r.lv}">${r.lv=='H'?L('HIGH','高'):r.lv=='M'?L('MED','中'):L('LOW','低')}</span></td><td>${esc(L(r.en,r.zh))}</td><td contenteditable>${esc(L(r.me,r.mz))}</td><td contenteditable>${esc(r.o)}</td></tr>`).join('')}</table>`;
+}
+function checkApp(){const ok=$('appChk').checked&&$('appBy').value.trim();$('bPdf').disabled=$('bXls').disabled=!ok;}
+$('appBy')?.addEventListener('input',checkApp);
+function stamp(){return `${L('Approved by','審批人')}: ${$('appBy').value} (${$('appRole').value}) · ${new Date().toLocaleString()}`;}
+function exportPdf(){
+ const a=$('appPrint');a.innerHTML=`<h2>${t('appT')}</h2><p>✅ ${esc(stamp())}</p>`;a.classList.remove('hidden');
+ document.querySelectorAll('.draft').forEach(e=>e.textContent=L('APPROVED (planning document)','已審批（籌備文件）'));
+ window.print();
+ setTimeout(()=>{a.classList.add('hidden');document.querySelectorAll('.draft').forEach(e=>e.textContent=t('draftTag'));},500);
+}
+function exportExcel(){
+ // Read edited tables directly from the page so manual edits are kept
+ const sheets=[['countdown',t('cdT')],['ros',t('rosT')],['staff',t('staffT')],['risk',t('riskT')]];
+ const cell=s=>`<td style="border:1px solid #999;vertical-align:top">${esc(s)}</td>`;
+ let h=`<html><head><meta charset="UTF-8"></head><body><h2>${esc(LAST.f.name)} — Event Ops Copilot</h2><p>${esc(stamp())}</p>`;
+ sheets.forEach(([id,title])=>{
+  h+=`<h3>${title}</h3><table>`;
+  document.querySelectorAll(`#${id} tr`).forEach(tr=>{h+='<tr>'+[...tr.children].map(td=>cell(td.innerText)).join('')+'</tr>';});
+  h+='</table><br>';
+ });
+ h+='</body></html>';
+ const b=new Blob(['\ufeff'+h],{type:'application/vnd.ms-excel'});
+ const u=URL.createObjectURL(b),a=document.createElement('a');
+ a.href=u;a.download=`EventOpsCopilot_${LAST.f.date}.xls`;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+for(const k in RATIO_DEF)$(k).value=RATIO_DEF[k];
+applyLang();
+</script>
+</body>
+</html>
