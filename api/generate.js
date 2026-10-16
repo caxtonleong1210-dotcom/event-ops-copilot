@@ -1,6 +1,8 @@
 // Vercel Serverless Function — Event Ops Copilot Phase 2
 // The API key is read from the environment variable GEMINI_API_KEY (set in Vercel). NEVER paste the key in this file.
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+// Try the configured model first, then common Flash names. A 404 (model not found) moves on to the next name automatically.
+const MODELS = [...new Set([(process.env.GEMINI_MODEL || '').trim(), 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'].filter(Boolean))];
+let goodModel = null; // remembers the first model that worked
 const LIMIT = 10, WINDOW = 60 * 60 * 1000; // 10 requests per visitor per hour (best effort)
 const hits = new Map();
 
@@ -67,25 +69,37 @@ Write:
 Rules: Never invent artists, prices, phone numbers, URLs, statistics, laws or licence numbers. Do not mention gambling promotions. Use only facts from the brief; if something is unknown, write it generically. Plain text, no markdown.`;
 }
 
-async function callGemini(e, key) {
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+async function callModel(model, e, key, useThinking) {
+  const cfg = { temperature: 0.4, maxOutputTokens: 8192, responseMimeType: 'application/json', responseSchema: SCHEMA };
+  if (useThinking) cfg.thinkingConfig = { thinkingBudget: 0 };
+  return fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: prompt(e) }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 0 }, responseMimeType: 'application/json', responseSchema: SCHEMA }
-    })
+    body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt(e) }] }], generationConfig: cfg })
   });
-  if (!r.ok) { const e = new Error('Gemini HTTP ' + r.status); e.code = r.status; throw e; }
+}
+
+async function callGemini(e, key) {
+  const list = goodModel ? [goodModel, ...MODELS.filter(m => m !== goodModel)] : MODELS;
+  let r = null, used = '', tried = [];
+  for (const m of list) {
+    r = await callModel(m, e, key, true);
+    if (r.status === 400) r = await callModel(m, e, key, false); // some models reject thinkingConfig
+    tried.push(m + ':' + r.status);
+    if (r.status === 404) continue;          // model name not available -> try next
+    used = m; break;
+  }
+  if (!r || !r.ok) { const err = new Error('Gemini HTTP ' + (r ? r.status : '?') + ' [' + tried.join(', ') + ']'); throw err; }
+  goodModel = used;
   const j = await r.json();
   const c = j?.candidates?.[0];
   let text = (c?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('').trim();
-  if (!text) throw new Error('empty AI reply (' + (c?.finishReason || 'no candidate') + ')');
+  if (!text) throw new Error('empty AI reply (' + (c?.finishReason || 'no candidate') + ', ' + used + ')');
   text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
   const i = text.indexOf('{'), k = text.lastIndexOf('}');
   if (i >= 0 && k > i) text = text.slice(i, k + 1);
   try { return JSON.parse(text); }
-  catch { throw new Error('AI JSON incomplete (' + (c?.finishReason || '?') + ')'); }
+  catch { throw new Error('AI JSON incomplete (' + (c?.finishReason || '?') + ', ' + used + ')'); }
 }
 
 module.exports = async (req, res) => {
@@ -103,12 +117,13 @@ module.exports = async (req, res) => {
   const e = clean(body || {});
 
   let last = 'AI output failed validation';
-  for (let attempt = 0; attempt < 2; attempt++) {   // 1 automatic retry
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt && /HTTP 40[0-4]/.test(last)) break; // config errors: retrying won't help   // 1 automatic retry
     try {
       let d = await callGemini(e, key);
       if (Array.isArray(d)) d = d[0];
       const why = check(d);
-      if (!why) return res.status(200).json({ announcements: d.announcements, risks: d.risks });
+      if (!why) return res.status(200).json({ announcements: d.announcements, risks: d.risks, model: goodModel });
       last = 'AI output failed validation: ' + why;
     } catch (err) { last = err.message; console.error('attempt', attempt + 1, err.message); }
   }
