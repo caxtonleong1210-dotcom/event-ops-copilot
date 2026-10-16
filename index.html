@@ -161,7 +161,7 @@ sumT:["Execution pack summary","執行包摘要"],draftTag:["DRAFT — pending h
 ganttT:["Planning timeline (Gantt)","籌備時間軸（甘特圖）"],cdT:["Countdown task list (T-60 → T+7)","倒數工作清單（T-60 → T+7）"],
 editNote:["Yellow cells are editable — click to adjust before approval.","黃色格可直接修改，審批前可按需要調整。"],
 rosT:["Event-day run of show","活動當日流程表"],staffT:["Staffing plan","人手配置"],riskT:["Risk register (Macau-specific)","風險清單（澳門特色）"],
-appT:["3 · Approval & export","3 · 審批及匯出"],appBy:["Approved by","審批人"],appRole:["Role","職位"],
+appT:["4 · Approval & export","4 · 審批及匯出"],appBy:["Approved by","審批人"],appRole:["Role","職位"],
 appChk:["I have reviewed this draft and approve it for export.","本人已審閱此草稿並批准匯出。"],
 pdf:["Export PDF","匯出 PDF"],xls:["Export Excel","匯出 Excel"],
 foot:["Event Ops Copilot · Portfolio project · Fictional demo data only · No personal data collected","Event Ops Copilot · 作品集項目 · 只使用虛構示範資料 · 不收集任何個人資料"],
@@ -174,7 +174,7 @@ time:["Time","時間"],item:["Item","項目"],role:["Role","崗位"],count:["Hea
 risk:["Risk","風險"],lvl:["Level","等級"],mit:["Mitigation / contingency","預防及應變"],
 },
 todo:["To do","待辦"],
-aiT:["4 · AI drafts: multilingual announcement & extra risks","4 · AI 草稿：多語言公告及補充風險"],
+aiT:["3 · AI drafts: multilingual announcement & extra risks","3 · AI 草稿：多語言公告及補充風險"],
 aiTag:["AI DRAFT · human proofreading required","AI 草稿 · 需人工校對"],
 aiNote:["AI only writes text. All numbers above come from the rule engine. AI risks are added only when you click Adopt.","AI 只負責文字，上面所有數字都由規則計算。AI 建議的風險要按「採納」才會加入清單。"],
 aiBtn:["✨ Generate AI drafts","✨ 生成 AI 草稿"],aiRiskT:["AI-suggested additional risks","AI 建議的補充風險"],
@@ -219,8 +219,8 @@ function read(){
  ['cap','pax','dur','gates','mCN','mHK','mLocal','mIntl','rSec','rUsher','rMed','rTicket'].forEach(k=>f[k]=parseFloat($(k).value));
  return f;
 }
-function addDays(ds,n){const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
-function addMin(hm,m){let [h,mi]=hm.split(':').map(Number);let x=h*60+mi+m;x=((x%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');}
+function addDays(ds,n){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function addMin(hm,m){let [h,mi]=hm.split(':').map(Number);let x=Math.round((h*60+mi+m)/5)*5;x=((x%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');}
 
 /* ---------- RULE ENGINE ---------- */
 function countdown(f){
@@ -389,23 +389,24 @@ function templateAI(f){ // deterministic fallback = demo mode
  const tm=addMin(f.start,-({concert:90,conference:60,festival:0,sports:90,gala:45}[f.type]));
  const ty=(()=>{const m=new Date(f.date+'T00:00:00').getMonth()+1;return m>=5&&m<=10;})();
  return {source:'template',announcements:{
- en:`${f.name}\n${f.date} · ${f.type=='festival'?'Opens':'Doors open'} ${tm} · Starts ${f.start}\nVenue: Harbour Grand Resort – ${VENUES[f.venue][0][0]}\n\n• Please arrive early; entry is staged across ${f.gates} gates. Have your ticket / QR code ready.\n• Free shuttle coaches run to Border Gate, the HZMB port and ferry terminals after the event, departing in waves.${f.minor=='yes'?'\n• Guests under 21 must follow the signed event route; gaming areas are strictly off-limits.':''}\n• Bad weather: if Typhoon Signal No. 8 or above or a Black Rainstorm Warning is in force, updates on postponement/refund will be posted on our official channels${ty?' (typhoon season — please check before travelling)':''}.\n• First-aid posts are located at every main entrance.\n\nWe look forward to welcoming you!`,
- zh_hant:`${f.name}\n${f.date} · ${tm} 開放${f.type=='conference'?'登記':'入場'} · ${f.start} 開始\n地點：Harbour Grand Resort – ${VENUES[f.venue][0][1]}\n\n• 請提早到場，現場設 ${f.gates} 個入口分批入場，請預備門票／二維碼。\n• 活動結束後設免費接駁巴士，分批前往關閘、港珠澳大橋口岸及各碼頭。${f.minor=='yes'?'\n• 未滿 21 歲賓客須按活動指示路線行走，嚴禁進入博彩區。':''}\n• 惡劣天氣：如懸掛 8 號或以上颱風信號或黑色暴雨警告，延期／退款安排將於官方渠道公佈${ty?'（現屬颱風季節，出發前請留意）':''}。\n• 各主要入口均設急救站。\n\n期待與您見面！`,
- zh_hans:`${f.name}\n${f.date} · ${tm} 开放${f.type=='conference'?'登记':'入场'} · ${f.start} 开始\n地点：Harbour Grand Resort – ${VENUES[f.venue][0][1]}\n\n• 请提早到场，现场设 ${f.gates} 个入口分批入场，请准备门票／二维码。\n• 活动结束后设免费接驳巴士，分批前往关闸、港珠澳大桥口岸及各码头。${f.minor=='yes'?'\n• 未满 21 岁宾客须按活动指示路线行走，严禁进入博彩区。':''}\n• 恶劣天气：如悬挂 8 号或以上台风信号或黑色暴雨警告，延期／退款安排将于官方渠道公布${ty?'（现属台风季节，出发前请留意）':''}。\n• 各主要入口均设急救站。\n\n期待与您见面！`},
+ en:`${f.name}\n${f.date} · ${tm==f.start?'Starts '+f.start:'Doors open '+tm+' · Starts '+f.start}\nVenue: Harbour Grand Resort – ${VENUES[f.venue][0][0]}\n\n• Please arrive early; entry is staged across ${f.gates} gates. Have your ticket / QR code ready.\n• Free shuttle coaches run to Border Gate, the HZMB port and ferry terminals after the event, departing in waves.${f.minor=='yes'?'\n• Guests under 21 must follow the signed event route; gaming areas are strictly off-limits.':''}\n• Bad weather: if Typhoon Signal No. 8 or above or a Black Rainstorm Warning is in force, updates on postponement/refund will be posted on our official channels${ty?' (typhoon season — please check before travelling)':''}.\n• First-aid posts are located at every main entrance.\n\nWe look forward to welcoming you!`,
+ zh_hant:`${f.name}\n${f.date} · ${tm==f.start?'':tm+' 開放'+(f.type=='conference'?'登記':'入場')+' · '}${f.start} 開始\n地點：Harbour Grand Resort – ${VENUES[f.venue][0][1]}\n\n• 請提早到場，現場設 ${f.gates} 個入口分批入場，請預備門票／二維碼。\n• 活動結束後設免費接駁巴士，分批前往關閘、港珠澳大橋口岸及各碼頭。${f.minor=='yes'?'\n• 未滿 21 歲賓客須按活動指示路線行走，嚴禁進入博彩區。':''}\n• 惡劣天氣：如懸掛 8 號或以上颱風信號或黑色暴雨警告，延期／退款安排將於官方渠道公佈${ty?'（現屬颱風季節，出發前請留意）':''}。\n• 各主要入口均設急救站。\n\n期待與您見面！`,
+ zh_hans:`${f.name}\n${f.date} · ${tm==f.start?'':tm+' 开放'+(f.type=='conference'?'登记':'入场')+' · '}${f.start} 开始\n地点：Harbour Grand Resort – ${VENUES[f.venue][0][1]}\n\n• 请提早到场，现场设 ${f.gates} 个入口分批入场，请准备门票／二维码。\n• 活动结束后设免费接驳巴士，分批前往关闸、港珠澳大桥口岸及各码头。${f.minor=='yes'?'\n• 未满 21 岁宾客须按活动指示路线行走，严禁进入博彩区。':''}\n• 恶劣天气：如悬挂 8 号或以上台风信号或黑色暴雨警告，延期／退款安排将于官方渠道公布${ty?'（现属台风季节，出发前请留意）':''}。\n• 各主要入口均设急救站。\n\n期待与您见面！`},
  risks:[{level:'M',risk_en:'Social-media rumours about cancellation spreading faster than official updates',risk_zh:'社交媒體上有關取消活動的謠言比官方消息傳得更快',mitigation_en:'Single official update channel; pre-approved holding statements in EN/繁/简; PR monitors social media from T-3',mitigation_zh:'設單一官方發佈渠道；預先審批英／繁／簡應急聲明；PR 由 T-3 起監察社交媒體',owner:'PR'},
  {level:'L',risk_en:'Mobile payment / ticket-scan network overload at peak entry',risk_zh:'入場高峰時流動支付／驗票網絡負荷過重',mitigation_en:'Dedicated event Wi-Fi for scanners; offline scan mode; printed backup list',mitigation_zh:'驗票機使用專用 Wi-Fi；離線驗票模式；印備後備名單',owner:'IT / Ticketing'}]};
 }
 async function runAI(){
  if(!LAST)return; const f=LAST.f; $('bAI').disabled=true; $('aiStatus').textContent=t('aiWait');
- let d=null;
+ let d=null, why='';
  try{
   if(location.protocol.startsWith('http')){
    const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),30000);
    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(brief(f)),signal:ctl.signal});
-   clearTimeout(to); if(r.ok){const j=await r.json(); if(validAI(j)){d=j;d.source='ai';}}
-  }
- }catch(e){}
- if(!d){d=templateAI(f);$('aiStatus').textContent=t('aiFb');} else $('aiStatus').textContent=t('aiOk');
+   clearTimeout(to); if(r.ok){const j=await r.json(); if(validAI(j)){d=j;d.source='ai';}else why='invalid';}
+   else{why='HTTP '+r.status; try{const j=await r.json(); if(j&&j.error)why+=' – '+String(j.error).slice(0,80);}catch(_){}}
+  } else why='local file';
+ }catch(e){why=(e&&e.name=='AbortError')?'timeout':'network';}
+ if(!d){d=templateAI(f);$('aiStatus').textContent=t('aiFb')+' ['+why+']';} else $('aiStatus').textContent=t('aiOk');
  AI=d; $('bAI').disabled=false; renderAI(); $('aiOut').classList.remove('hidden');
 }
 function saveAnn(){if(AI)AI.announcements[ANNTAB]=$('annBox').innerText;}
