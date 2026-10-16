@@ -32,11 +32,28 @@ function clean(b) {
   };
 }
 
-function valid(d) {
-  if (!d || !d.announcements || !Array.isArray(d.risks)) return false;
-  if (!['en', 'zh_hant', 'zh_hans'].every(k => typeof d.announcements[k] === 'string' && d.announcements[k].trim().length > 20)) return false;
-  d.risks = d.risks.slice(0, 3);
-  return d.risks.length > 0 && d.risks.every(r => ['H', 'M', 'L'].includes(r.level) && r.risk_en && r.risk_zh && r.mitigation_en && r.mitigation_zh);
+function txt(v) { return typeof v === 'string' ? v.trim() : (v == null ? '' : String(v).trim()); }
+function lvl(v) { const x = txt(v).toUpperCase(); if (x.startsWith('H')) return 'H'; if (x.startsWith('L')) return 'L'; return 'M'; }
+// Lenient normalise + check. Returns '' if OK, otherwise the reason (shown on the page for debugging).
+function check(d) {
+  if (Array.isArray(d)) d = d[0];
+  if (!d || typeof d !== 'object') return 'not an object';
+  const a = d.announcements || d.announcement || {};
+  const ann = {
+    en: txt(a.en || a.english || a.EN),
+    zh_hant: txt(a.zh_hant || a['zh-Hant'] || a.zh_tw || a.traditional),
+    zh_hans: txt(a.zh_hans || a['zh-Hans'] || a.zh_cn || a.simplified)
+  };
+  for (const k of ['en', 'zh_hant', 'zh_hans']) if (ann[k].length < 10) return 'announcement ' + k + ' missing';
+  const risks = (Array.isArray(d.risks) ? d.risks : []).map(r => ({
+    level: lvl(r && r.level),
+    risk_en: txt(r && r.risk_en), risk_zh: txt(r && r.risk_zh),
+    mitigation_en: txt(r && r.mitigation_en), mitigation_zh: txt(r && r.mitigation_zh),
+    owner: txt(r && r.owner) || 'Event Ops'
+  })).filter(r => r.risk_en && r.risk_zh && r.mitigation_en && r.mitigation_zh).slice(0, 3);
+  if (!risks.length) return 'no usable risks';
+  d.announcements = ann; d.risks = risks;
+  return '';
 }
 
 function prompt(e) {
@@ -56,13 +73,19 @@ async function callGemini(e, key) {
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt(e) }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 4096, responseMimeType: 'application/json', responseSchema: SCHEMA }
+      generationConfig: { temperature: 0.4, maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 0 }, responseMimeType: 'application/json', responseSchema: SCHEMA }
     })
   });
   if (!r.ok) { const e = new Error('Gemini HTTP ' + r.status); e.code = r.status; throw e; }
   const j = await r.json();
-  const text = j?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-  return JSON.parse(text);
+  const c = j?.candidates?.[0];
+  let text = (c?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('').trim();
+  if (!text) throw new Error('empty AI reply (' + (c?.finishReason || 'no candidate') + ')');
+  text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+  const i = text.indexOf('{'), k = text.lastIndexOf('}');
+  if (i >= 0 && k > i) text = text.slice(i, k + 1);
+  try { return JSON.parse(text); }
+  catch { throw new Error('AI JSON incomplete (' + (c?.finishReason || '?') + ')'); }
 }
 
 module.exports = async (req, res) => {
@@ -82,8 +105,11 @@ module.exports = async (req, res) => {
   let last = 'AI output failed validation';
   for (let attempt = 0; attempt < 2; attempt++) {   // 1 automatic retry
     try {
-      const d = await callGemini(e, key);
-      if (valid(d)) return res.status(200).json(d);
+      let d = await callGemini(e, key);
+      if (Array.isArray(d)) d = d[0];
+      const why = check(d);
+      if (!why) return res.status(200).json({ announcements: d.announcements, risks: d.risks });
+      last = 'AI output failed validation: ' + why;
     } catch (err) { last = err.message; console.error('attempt', attempt + 1, err.message); }
   }
   return res.status(502).json({ error: last }); // front-end falls back to template
